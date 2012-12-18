@@ -6,12 +6,13 @@ Apache license 2.0
 
 Usage
 -----
-  include rhn   # with Hiera
-     - or -
-  class { 'rhn':
-    rhn_httpProxy_p     => $::proxy_server,
-    rhn_activationKey_p => '99324696916956420524alsjdkkdfjkas',
-  }
+
+    include rhn   # with Hiera
+       - or -
+    class { 'rhn':
+      rhn_httpProxy_p     => $::proxy_server,
+      rhn_activationKey_p => '99324696916956420524alsjdkkdfjkas',
+    }
 
 Contact
 -------
