@@ -66,11 +66,13 @@ class rhn (
 	file_line { "up2date_serverURL":
 		path   => '/etc/sysconfig/rhn/up2date',
 		line   => "serverURL=${rhn_serverURL}",
+		match  => "^serverURL=.*",
 		notify => Exec['rhnreg_ks'],
 	}
 	file_line { "up2date_sslCACert":
 		path   => '/etc/sysconfig/rhn/up2date',
 		line   => "sslCACert=${rhn_sslCACert}",
+		match  => "^sslCACert=.*",
 		notify => Exec['rhnreg_ks'],
 	}
 
