@@ -1,6 +1,7 @@
 # == Class: rhn
 #
-# This class registers the node at RHN or Satellite. All required variables can be extracted from Hiera.
+# This class registers the node at RHN or Satellite. All required variables can
+# be extracted from Hiera.
 #
 # === Parameters
 #
@@ -20,7 +21,8 @@
 #
 # [*rhn_activationKey_p*]
 #   Mandantory, either as a parameter or Hiera value.
-#   Create this key using Satellite or RHN-classic. (Management->Activation Keys)
+#   Create this key using Satellite or RHN-classic. (Management->Activation
+#   Keys)
 #
 # [*rhn_description_p*]
 #   Provide extra description to the RHN registration.
@@ -51,7 +53,8 @@ class rhn (
   $rhn_description_p   = '',
 ){
 
-  # Tries to load settings from Hiera, if that fails it uses the regular parameters.
+  # Tries to load settings from Hiera, if that fails it uses the regular
+  # parameters.
   $rhn_serverURL     = hiera('rhn_serverURL',     $rhn_serverURL_p)
   $rhn_sslCACert     = hiera('rhn_sslCACert',     $rhn_sslCACert_p)
   $rhn_httpProxy     = hiera('rhn_httpProxy',     $rhn_httpProxy_p)
@@ -76,7 +79,8 @@ class rhn (
     notify => Exec['rhnreg_ks'],
   }
 
-  # Only execute the register command when the up2date file is changed. This should prevent multiple registrations.
+  # Only execute the register command when the up2date file is changed. This
+  # should prevent multiple registrations.
   exec { 'rhnreg_ks':
     command     => $rhn_httpProxy ? {
       ''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
