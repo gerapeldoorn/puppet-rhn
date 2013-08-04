@@ -81,11 +81,13 @@ class rhn (
 
   # Only execute the register command when the up2date file is changed. This
   # should prevent multiple registrations.
-  exec { 'rhnreg_ks':
-    command     => $rhn_httpProxy ? {
+  $rhn_command = $rhn_httpProxy ? {
       ''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
       default => "/usr/sbin/rhnreg_ks --force --proxy=${rhn_httpProxy} --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
-    },
+  }
+  exec { 'rhnreg_ks':
+    command     => $rhn_command,
     refreshonly => true,
   }
+
 }
