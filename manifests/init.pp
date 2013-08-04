@@ -4,7 +4,7 @@
 #
 # === Parameters
 #
-# All parameters 
+# All parameters
 #
 # [*rhn_serverURL_p*]
 #   Provide the URL of the Satellite Server or RHN (Default)
