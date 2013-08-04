@@ -44,44 +44,44 @@
 # Copyright 2012 Ger Apeldoorn
 #
 class rhn (
-	$rhn_serverURL_p     = 'https://xmlrpc.rhn.redhat.com/XMLRPC',
-	$rhn_sslCACert_p     = '/usr/share/rhn/RHNS-CA-CERT',
-	$rhn_httpProxy_p     = '',
-	$rhn_activationKey_p = '',
-	$rhn_description_p   = '',
+  $rhn_serverURL_p     = 'https://xmlrpc.rhn.redhat.com/XMLRPC',
+  $rhn_sslCACert_p     = '/usr/share/rhn/RHNS-CA-CERT',
+  $rhn_httpProxy_p     = '',
+  $rhn_activationKey_p = '',
+  $rhn_description_p   = '',
 ){
 
-	# Tries to load settings from Hiera, if that fails it uses the regular parameters.
-	$rhn_serverURL     = hiera('rhn_serverURL',     $rhn_serverURL_p)
-	$rhn_sslCACert     = hiera('rhn_sslCACert',     $rhn_sslCACert_p)
-	$rhn_httpProxy     = hiera('rhn_httpProxy',     $rhn_httpProxy_p)
-	$rhn_activationKey = hiera('rhn_activationKey', $rhn_activationKey_p)
-	$rhn_description   = hiera('description',       '')
+  # Tries to load settings from Hiera, if that fails it uses the regular parameters.
+  $rhn_serverURL     = hiera('rhn_serverURL',     $rhn_serverURL_p)
+  $rhn_sslCACert     = hiera('rhn_sslCACert',     $rhn_sslCACert_p)
+  $rhn_httpProxy     = hiera('rhn_httpProxy',     $rhn_httpProxy_p)
+  $rhn_activationKey = hiera('rhn_activationKey', $rhn_activationKey_p)
+  $rhn_description   = hiera('description',       '')
 
-	# It really needs an activationkey, either from a parameter or Hiera.
-	if !$rhn_activationKey {
-		fail("activationkey not set")
-	}
+  # It really needs an activationkey, either from a parameter or Hiera.
+  if !$rhn_activationKey {
+    fail("activationkey not set")
+  }
 
-	file_line { "up2date_serverURL":
-		path   => '/etc/sysconfig/rhn/up2date',
-		line   => "serverURL=${rhn_serverURL}",
-		match  => "^serverURL=.*",
-		notify => Exec['rhnreg_ks'],
-	}
-	file_line { "up2date_sslCACert":
-		path   => '/etc/sysconfig/rhn/up2date',
-		line   => "sslCACert=${rhn_sslCACert}",
-		match  => "^sslCACert=.*",
-		notify => Exec['rhnreg_ks'],
-	}
+  file_line { "up2date_serverURL":
+    path   => '/etc/sysconfig/rhn/up2date',
+    line   => "serverURL=${rhn_serverURL}",
+    match  => "^serverURL=.*",
+    notify => Exec['rhnreg_ks'],
+  }
+  file_line { "up2date_sslCACert":
+    path   => '/etc/sysconfig/rhn/up2date',
+    line   => "sslCACert=${rhn_sslCACert}",
+    match  => "^sslCACert=.*",
+    notify => Exec['rhnreg_ks'],
+  }
 
-	# Only execute the register command when the up2date file is changed. This should prevent multiple registrations.
-	exec { "rhnreg_ks":
-		command     => $rhn_httpProxy ? {
-			''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
-			default => "/usr/sbin/rhnreg_ks --force --proxy=${rhn_httpProxy} --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
-		},
-		refreshonly => true,
-	}
+  # Only execute the register command when the up2date file is changed. This should prevent multiple registrations.
+  exec { "rhnreg_ks":
+    command     => $rhn_httpProxy ? {
+      ''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
+      default => "/usr/sbin/rhnreg_ks --force --proxy=${rhn_httpProxy} --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
+    },
+    refreshonly => true,
+  }
 }
