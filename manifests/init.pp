@@ -60,24 +60,24 @@ class rhn (
 
   # It really needs an activationkey, either from a parameter or Hiera.
   if !$rhn_activationKey {
-    fail("activationkey not set")
+    fail('activationkey not set')
   }
 
-  file_line { "up2date_serverURL":
+  file_line { 'up2date_serverURL':
     path   => '/etc/sysconfig/rhn/up2date',
     line   => "serverURL=${rhn_serverURL}",
-    match  => "^serverURL=.*",
+    match  => '^serverURL=.*',
     notify => Exec['rhnreg_ks'],
   }
-  file_line { "up2date_sslCACert":
+  file_line { 'up2date_sslCACert':
     path   => '/etc/sysconfig/rhn/up2date',
     line   => "sslCACert=${rhn_sslCACert}",
-    match  => "^sslCACert=.*",
+    match  => '^sslCACert=.*',
     notify => Exec['rhnreg_ks'],
   }
 
   # Only execute the register command when the up2date file is changed. This should prevent multiple registrations.
-  exec { "rhnreg_ks":
+  exec { 'rhnreg_ks':
     command     => $rhn_httpProxy ? {
       ''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
       default => "/usr/sbin/rhnreg_ks --force --proxy=${rhn_httpProxy} --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
