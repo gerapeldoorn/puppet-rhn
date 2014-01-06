@@ -1,5 +1,5 @@
 name    'gerapeldoorn-rhn'
-version '0.0.2'
+version '1.0.0'
 source 'UNKNOWN'
 author 'Ger Apeldoorn <info@gerapeldoorn.nl>'
 license 'Apache License, Version 2.0'
