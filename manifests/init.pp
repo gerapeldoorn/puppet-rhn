@@ -1,38 +1,40 @@
 # == Class: rhn
 #
-# This class registers the node at RHN or Satellite. All required variables can be extracted from Hiera.
+# This class registers the node at RHN or Satellite. All required variables can
+# be extracted from Hiera.
 #
 # === Parameters
 #
-# All parameters 
+# All parameters
 #
-# [*rhn_serverURL_p*]
+# [*serverURL*]
 #   Provide the URL of the Satellite Server or RHN (Default)
-#    Optional, defaults to RHN URL, overridden by Hiera rhn_serverURL
+#    Optional, defaults to RHN URL.
 #
-# [*rhn_sslCACert_p*]
+# [*sslCACert*]
 #   Provide the path to the RHN CACert on the local filesystems
-#    Optional, defaults to default location, overridden by Hiera rhn_sslCACert
+#    Optional, defaults to default location.
 #
-# [*rhn_httpProxy_p*]
+# [*httpProxy*]
 #   Provide HTTP proxy, if applicable.
-#    Optional, defaults to empty, overridden by Hiera rhn_httpProxy
+#    Optional, defaults to empty.
 #
-# [*rhn_activationKey_p*]
+# [*activationKey*]
 #   Mandantory, either as a parameter or Hiera value.
-#   Create this key using Satellite or RHN-classic. (Management->Activation Keys)
+#   Create this key using Satellite or RHN-classic. (Management->Activation
+#   Keys)
 #
-# [*rhn_description_p*]
+# [*description*]
 #   Provide extra description to the RHN registration.
-#   Optional, defaults to empty, overridden by Hiera description
+#   Optional, defaults to empty.
 #
 # === Examples
 #
 #  include rhn   # with Hiera
 #     - or -
 #  class { 'rhn':
-#    rhn_httpProxy_p     => $::proxy_server,
-#    rhn_activationKey_p => '99324696916956420524alsjdkkdfjkas',
+#    httpProxy     => $::proxy_server,
+#    activationKey => '99324696916956420524alsjdkkdfjkas',
 #  }
 #
 # === Authors
@@ -41,47 +43,43 @@
 #
 # === Copyright
 #
-# Copyright 2012 Ger Apeldoorn
+# Copyright 2014 Ger Apeldoorn
 #
 class rhn (
-	$rhn_serverURL_p     = 'https://xmlrpc.rhn.redhat.com/XMLRPC',
-	$rhn_sslCACert_p     = '/usr/share/rhn/RHNS-CA-CERT',
-	$rhn_httpProxy_p     = '',
-	$rhn_activationKey_p = '',
-	$rhn_description_p   = '',
+  $serverURL     = 'https://xmlrpc.rhn.redhat.com/XMLRPC',
+  $sslCACert     = '/usr/share/rhn/RHNS-CA-CERT',
+  $httpProxy     = '',
+  $activationKey = '',
+  $description   = '',
 ){
 
-	# Tries to load settings from Hiera, if that fails it uses the regular parameters.
-	$rhn_serverURL     = hiera('rhn_serverURL',     $rhn_serverURL_p)
-	$rhn_sslCACert     = hiera('rhn_sslCACert',     $rhn_sslCACert_p)
-	$rhn_httpProxy     = hiera('rhn_httpProxy',     $rhn_httpProxy_p)
-	$rhn_activationKey = hiera('rhn_activationKey', $rhn_activationKey_p)
-	$rhn_description   = hiera('description',       '')
+  # It really needs an activationkey, either from a parameter or Hiera.
+  if !$activationKey {
+    fail('Activationkey not set for RHN module.')
+  }
 
-	# It really needs an activationkey, either from a parameter or Hiera.
-	if !$rhn_activationKey {
-		fail("activationkey not set")
-	}
+  file_line { 'up2date_serverURL':
+    path   => '/etc/sysconfig/rhn/up2date',
+    line   => "serverURL=${serverURL}",
+    match  => '^serverURL=.*',
+    notify => Exec['rhnreg_ks'],
+  }
+  file_line { 'up2date_sslCACert':
+    path   => '/etc/sysconfig/rhn/up2date',
+    line   => "sslCACert=${sslCACert}",
+    match  => '^sslCACert=.*',
+    notify => Exec['rhnreg_ks'],
+  }
 
-	file_line { "up2date_serverURL":
-		path   => '/etc/sysconfig/rhn/up2date',
-		line   => "serverURL=${rhn_serverURL}",
-		match  => "^serverURL=.*",
-		notify => Exec['rhnreg_ks'],
-	}
-	file_line { "up2date_sslCACert":
-		path   => '/etc/sysconfig/rhn/up2date',
-		line   => "sslCACert=${rhn_sslCACert}",
-		match  => "^sslCACert=.*",
-		notify => Exec['rhnreg_ks'],
-	}
+  # Only execute the register command when the up2date file is changed. This
+  # should prevent multiple registrations.
+  $command = $httpProxy ? {
+      ''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${activationKey}\" --profilename=\"${::fqdn} - ${description}\"",
+      default => "/usr/sbin/rhnreg_ks --force --proxy=${httpProxy} --activationkey=\"${activationKey}\" --profilename=\"${::fqdn} - ${description}\"",
+  }
+  exec { 'rhnreg_ks':
+    command     => $command,
+    refreshonly => true,
+  }
 
-	# Only execute the register command when the up2date file is changed. This should prevent multiple registrations.
-	exec { "rhnreg_ks":
-		command     => $rhn_httpProxy ? {
-			''      => "/usr/sbin/rhnreg_ks --force --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
-			default => "/usr/sbin/rhnreg_ks --force --proxy=${rhn_httpProxy} --activationkey=\"${rhn_activationKey}\" --profilename=\"${::fqdn} - ${rhn_description}\"",
-		},
-		refreshonly => true,
-	}
 }
